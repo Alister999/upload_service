@@ -1,8 +1,21 @@
 import os.path
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
 
-app = FastAPI(debug=True)
+from db_config import init_db
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("📦 Init DB...")
+    await init_db()
+    yield
+    print("🧹 Shutdown...")
+
+
+app = FastAPI(debug=True, lifespan=lifespan)
+
 
 @app.post('/upload')
 async def upload(file: UploadFile = File(...)) -> dict:

@@ -16,3 +16,13 @@ class UploadedFile(Base):
     hash: Mapped[str] = mapped_column(index=True, nullable=True, default=None)
     url: Mapped[str] = mapped_column(nullable=True, default=None)
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True, autoincrement=True, unique=True)
+    username: Mapped[str] = mapped_column(unique=True, index=True)
+    password_hash: Mapped[str]
+    access_token: Mapped[str] = mapped_column(unique=True, nullable=True, default=None)
+    refresh_token: Mapped[str] = mapped_column(unique=True, nullable=True, default=None)

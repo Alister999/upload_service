@@ -10,14 +10,15 @@ class BaseFile(BaseModel):
         from_attributes = True
 
 
-class CreateFile(BaseFile):
-    file_name: str
+class UpdateFile(BaseFile):
+    id: Optional[uuid.UUID]
     hash: Optional[str]
+    file_name: Optional[str]
     url: Optional[str]
 
 
 class ResponseFile(BaseFile):
-    UUID: uuid.UUID
+    id: uuid.UUID
     hash: Optional[str]
     file_name: str
     url: Optional[str]

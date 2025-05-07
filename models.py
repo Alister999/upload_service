@@ -11,7 +11,7 @@ class Base(DeclarativeBase):
 class UploadedFile(Base):
     __tablename__ = 'upload_file'
 
-    UUID: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, index=True, unique=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, index=True, unique=True, default=uuid.uuid4)
     file_name: Mapped[str]
     hash: Mapped[str] = mapped_column(index=True, nullable=True, default=None)
     url: Mapped[str] = mapped_column(nullable=True, default=None)

@@ -1,5 +1,6 @@
 import os
 from contextlib import asynccontextmanager
+from typing import Optional
 
 from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, FastAPI

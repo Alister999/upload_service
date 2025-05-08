@@ -19,7 +19,8 @@ from user_repo import FileRepository, UserRepository
 from utils import lifespan, get_db, get_minio_service, hash_password, verify_password, get_current_user
 
 
-app = FastAPI(debug=True, lifespan=lifespan)
+# app = FastAPI(debug=True, lifespan=lifespan)
+app = FastAPI()
 load_dotenv()
 ALGORITHM = os.getenv('ALGORITHM')
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 52,428,800 byte
@@ -53,7 +54,6 @@ async def upload(file: UploadFile = File(...),
         hash=sha256_hash,
         url=file_url,
     )
-
 
     await repo.add(new_file)
     await db.commit()

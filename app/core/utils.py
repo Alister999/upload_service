@@ -16,12 +16,12 @@ from app.models.user import User
 
 load_dotenv()
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    print("Init DB...")
-    await init_db()
-    yield
-    print("Shutdown...")
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     print("Init DB...")
+#     await init_db()
+#     yield
+#     print("Shutdown...")
 
 
 async def get_minio_service() -> MinIOService:

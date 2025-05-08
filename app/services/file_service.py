@@ -1,10 +1,9 @@
+import os
 import uuid
 from typing import List
 
-from fastapi import Depends, HTTPException
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.core.utils import get_minio_service
 from app.models.file import UploadedFile
 from app.schemas.file import ResponseFile, UpdateFile
 from app.core.database import FileRepository
@@ -41,21 +40,36 @@ async def update_file(file_id: uuid.UUID, data: UpdateFile,
     return UpdateFile.model_validate(file)
 
 
-async def delete_file(file_id: uuid.UUID,
-                      db: AsyncSession,
-                      minio_service: MinIOService = Depends(get_minio_service)) -> bool:
+
+async def delete_file(
+    file_id: uuid.UUID,
+    db: AsyncSession
+) -> bool:
     repo = FileRepository(session=db)
     file = await repo.get_one_or_none(UploadedFile.id == file_id)
     if not file:
         raise HTTPException(
             status_code=404,
-            detail=f'File with ID {file_id} not found'
+            detail=f"File with ID {file_id} not found"
         )
 
     if file.url:
         try:
-            object_name = file.url.split(f"{settings.MINIO_ENDPOINT}/my-bucket/")[-1]
-            minio_service.delete_file(object_name)
+            prefix = f"{settings.MINIO_ENDPOINT}/my-bucket/"
+            if not file.url.startswith(prefix):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid file URL format: {file.url}"
+                )
+            file_extension = os.path.splitext(file.file_name)[1].lower()
+            object_name = f'{file.id}{file_extension}'
+            minio_s = MinIOService(
+                endpoint=settings.MINIO_ENDPOINT,
+                access_key=settings.MINIO_ACCESS_KEY,
+                secret_key=settings.MINIO_SECRET_KEY,
+                bucket_name="my-bucket",
+            )
+            minio_s.delete_file(object_name)  # Синхронный вызов
         except Exception as e:
             raise HTTPException(
                 status_code=400,
@@ -64,5 +78,4 @@ async def delete_file(file_id: uuid.UUID,
 
     await repo.delete(file_id)
     await db.commit()
-
     return True

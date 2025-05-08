@@ -55,8 +55,13 @@ class MinIOService:
 
         return object_name, file_url, sha256_hash
 
+
+
     def delete_file(self, object_name: str) -> None:
         try:
+            self.s3_client.head_object(Bucket=self.bucket_name, Key=object_name)
             self.s3_client.delete_object(Bucket=self.bucket_name, Key=object_name)
         except ClientError as e:
+            if e.response['Error']['Code'] == '404':
+                return
             raise HTTPException(status_code=500, detail=f"Failed to delete file from MinIO: {str(e)}")

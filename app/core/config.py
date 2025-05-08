@@ -14,9 +14,9 @@ class Settings(BaseSettings):
     MINIO_SECRET_KEY: str
     MINIO_ROOT_USER: str
     MINIO_ROOT_PASSWORD: str
-    ALGORITHM: str #= "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int #= 15
-    REFRESH_TOKEN_EXPIRE_DAYS: int #= 7
+    ALGORITHM: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
+    REFRESH_TOKEN_EXPIRE_DAYS: int
     SECRET_KEY: str
 
     class Config:

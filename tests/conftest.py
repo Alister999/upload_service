@@ -4,14 +4,20 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from main import app, get_db, get_minio_service
-from db_config import db_config
-from minio_service import MinIOService
-from models import Base
+# from main import app, get_db, get_minio_service
+# from db_config import db_config
+# from minio_service import MinIOService
+# from models import Base
 import testing.postgresql
 from advanced_alchemy.config import SQLAlchemyAsyncConfig
 from contextlib import asynccontextmanager
 from unittest.mock import Mock, AsyncMock
+
+from app.core.database import get_db, db_config
+from app.core.storage import MinIOService
+from app.core.utils import get_minio_service
+from app.main import app
+from app.models.general import Base
 
 
 @asynccontextmanager

@@ -1,18 +1,15 @@
-import os
 import pytest
 import pytest_asyncio
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from main import app, get_db, get_minio_service
 from db_config import db_config
 from minio_service import MinIOService
-from models import Base, User, UploadedFile
-from passlib.context import CryptContext
+from models import Base
 import testing.postgresql
 from advanced_alchemy.config import SQLAlchemyAsyncConfig
-from typing import Annotated
 from contextlib import asynccontextmanager
 from unittest.mock import Mock, AsyncMock
 
@@ -93,31 +90,3 @@ async def setup_database(test_engine):
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
-
-@pytest_asyncio.fixture
-async def test_user(test_session: AsyncSession):
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    user = User(
-        username="testuser",
-        password_hash=pwd_context.hash("testpassword"),
-    )
-    test_session.add(user)
-    await test_session.commit()
-    await test_session.refresh(user)
-    return user
-
-
-@pytest_asyncio.fixture
-async def auth_token(test_user):
-    from auth import create_access_token
-    return create_access_token({"sub": test_user.username})
-
-
-@pytest_asyncio.fixture
-async def login(client: TestClient, test_user: User):
-    response = client.post(
-        "/login",
-        json={"username": "testuser", "password": "testpassword"},
-    )
-    assert response.status_code == 200
-    return response.json()["access_token"]

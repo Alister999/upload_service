@@ -21,7 +21,7 @@ async def test_post_files_unauth(client: TestClient):
     assert response.text == '{"detail":"Not authenticated"}'
 
 
-async def test_put_files_unauth(client):
+async def test_put_files_unauth(client: TestClient):
     url = '/files/3fa85f64-5717-4562-b3fc-2c963f66afa6'
     data = {
       "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -35,9 +35,10 @@ async def test_put_files_unauth(client):
     assert response.text == '{"detail":"Not authenticated"}'
 
 
-async def test_delete_files_unauth(client):
+async def test_delete_files_unauth(client: TestClient):
     url = '/files/3fa85f64-5717-4562-b3fc-2c963f66afa6'
     response = client.delete(url)
 
     assert response.status_code == 401
     assert response.text == '{"detail":"Not authenticated"}'
+

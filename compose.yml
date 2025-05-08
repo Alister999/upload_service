@@ -14,13 +14,15 @@ services:
       - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
     depends_on:
-      - db_host
-      - minio
+      db_host:
+        condition: service_healthy
+      minio:
+        condition: service_started
     volumes:
       - .:/app
     networks:
       - internal_network
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   db_host:
     image: postgres:13
@@ -30,6 +32,11 @@ services:
       - POSTGRES_DB=${DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U Alister -d db_host" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - internal_network
 

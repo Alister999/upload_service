@@ -1,67 +1,56 @@
-import boto3
-import hashlib
-import uuid
-import os
-from fastapi import HTTPException, UploadFile as FastAPIUploadFile
-from botocore.exceptions import ClientError
-
+from io import BytesIO
+from minio import Minio
+from minio.error import S3Error
 from app.core.config import settings
+import logging
+import hashlib
+from fastapi import UploadFile
 
+logger = logging.getLogger(__name__)
 
 class MinIOService:
-    def __init__(self, endpoint: str, access_key: str,
-                 secret_key: str, bucket_name: str = "my-bucket"):
-        self.bucket_name = bucket_name
-        self.s3_client = boto3.client(
-            's3',
-            endpoint_url=endpoint,
-            aws_access_key_id=access_key,
-            aws_secret_access_key=secret_key,
+    def __init__(self):
+        self.client = Minio(
+            endpoint=settings.MINIO_ENDPOINT,
+            access_key=settings.MINIO_ROOT_USER,
+            secret_key=settings.MINIO_ROOT_PASSWORD,
+            secure=settings.MINIO_SECURE
         )
+        self.bucket_name = settings.MINIO_BUCKET_NAME
         self._ensure_bucket()
 
-
-    def _ensure_bucket(self) -> None:
+    def _ensure_bucket(self):
         try:
-            self.s3_client.head_bucket(Bucket=self.bucket_name)
-        except ClientError as e:
-            if e.response['Error']['Code'] == '404':
-                try:
-                    self.s3_client.create_bucket(Bucket=self.bucket_name)
-                except ClientError as create_error:
-                    raise HTTPException(status_code=500, detail=f"Failed to create bucket: {str(create_error)}")
+            if not self.client.bucket_exists(self.bucket_name):
+                self.client.make_bucket(self.bucket_name)
+                logger.info(f"Bucket {self.bucket_name} created")
             else:
-                raise HTTPException(status_code=500, detail=f"Failed to check bucket: {str(e)}")
+                logger.info(f"Bucket {self.bucket_name} already exists")
+        except S3Error as e:
+            logger.error(f"Error ensuring bucket {self.bucket_name}: {e}")
+            raise
 
-
-    async def upload_file(self, file: FastAPIUploadFile) -> tuple[str, str, str]:
-        file_extension = os.path.splitext(file.filename)[1].lower()
-        object_name = f"{uuid.uuid4()}{file_extension}"
-
-        file_content = await file.read()
-        sha256_hash = hashlib.sha256(file_content).hexdigest()
-
+    async def upload_file(self, file: UploadFile) -> tuple[str, str, str]:
         try:
-            self.s3_client.put_object(
-                Bucket=self.bucket_name,
-                Key=object_name,
-                Body=file_content,
-                ContentType=file.content_type,
+            file_data = await file.read()
+            hash_value = hashlib.sha256(file_data).hexdigest()
+            self.client.put_object(
+                self.bucket_name,
+                file.filename,
+                data=BytesIO(file_data),
+                length=len(file_data)
             )
-        except ClientError as e:
-            raise HTTPException(status_code=500, detail=f"Failed to upload to MinIO: {str(e)}")
+            url = f"{settings.MINIO_EXTERNAL_ENDPOINT}/{self.bucket_name}/{file.filename}"
+            logger.info(f"File {file.filename} uploaded to {url}")
+            return None, url, hash_value
+        except S3Error as e:
+            logger.error(f"Error uploading file {file.filename}: {e}")
+            raise
 
-        file_url = f"{settings.MINIO_ENDPOINT}/{self.bucket_name}/{object_name}"
-
-        return object_name, file_url, sha256_hash
-
-
-
-    def delete_file(self, object_name: str) -> None:
+    def delete_file(self, file_name: str):
         try:
-            self.s3_client.head_object(Bucket=self.bucket_name, Key=object_name)
-            self.s3_client.delete_object(Bucket=self.bucket_name, Key=object_name)
-        except ClientError as e:
-            if e.response['Error']['Code'] == '404':
-                return
-            raise HTTPException(status_code=500, detail=f"Failed to delete file from MinIO: {str(e)}")
+            self.client.remove_object(self.bucket_name, file_name)
+            logger.info(f"File {file_name} deleted from bucket {self.bucket_name}")
+        except S3Error as e:
+            logger.error(f"Error deleting file {file_name}: {e}")
+            raise

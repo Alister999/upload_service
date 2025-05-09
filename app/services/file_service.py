@@ -1,4 +1,3 @@
-import os
 import uuid
 from typing import List
 
@@ -61,14 +60,8 @@ async def delete_file(
                     status_code=400,
                     detail=f"Invalid file URL format: {file.url}"
                 )
-            file_extension = os.path.splitext(file.file_name)[1].lower()
-            object_name = f'{file.id}{file_extension}'
-            minio_s = MinIOService(
-                endpoint=settings.MINIO_ENDPOINT,
-                access_key=settings.MINIO_ACCESS_KEY,
-                secret_key=settings.MINIO_SECRET_KEY,
-                bucket_name="my-bucket",
-            )
+            object_name = f'{file.file_name}'
+            minio_s = MinIOService()
             minio_s.delete_file(object_name)  # Синхронный вызов
         except Exception as e:
             raise HTTPException(

@@ -1,6 +1,4 @@
 import os
-from contextlib import asynccontextmanager
-
 from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, FastAPI
 from fastapi.security import OAuth2PasswordBearer
@@ -15,13 +13,6 @@ from app.core.storage import MinIOService
 from app.models.user import User
 
 load_dotenv()
-
-# @asynccontextmanager
-# async def lifespan(app: FastAPI):
-#     print("Init DB...")
-#     await init_db()
-#     yield
-#     print("Shutdown...")
 
 
 async def get_minio_service() -> MinIOService:

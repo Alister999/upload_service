@@ -24,13 +24,7 @@ async def upload_file(file: UploadFile, db: AsyncSession) -> ResponseFile:
             detail=f'File with name {file.filename} already exist'
         )
 
-    minio_s = MinIOService(
-        endpoint=settings.MINIO_ENDPOINT,
-        access_key=settings.MINIO_ACCESS_KEY,
-        secret_key=settings.MINIO_SECRET_KEY,
-        bucket_name="my-bucket",
-    )
-
+    minio_s = MinIOService()
     _, file_url, sha256_hash = await minio_s.upload_file(file)
 
     file_record = UploadedFile(

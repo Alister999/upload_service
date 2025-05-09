@@ -1,5 +1,5 @@
 import os
-from fastapi import Depends, HTTPException
+from fastapi import HTTPException
 from jose import jwt, JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 

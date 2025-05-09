@@ -7,6 +7,30 @@
 Документация по API находится по адресу http://localhost:8000/docs#/ через Swagger.
 Работа осуществляется через приложение на FastAPI, MinIO и PostgreSQL.
 
+ВАЖНО!
+Для работы необходимо создать в корне проекта
+файл .env по следующему шаблону ниже, 
+подставить нужные данные:
+
+DB_USER=Alister
+DB_PASSWORD=123
+DB_HOST=db_host
+DB_NAME=db_host
+MINIO_ENDPOINT=minio:9000
+MINIO_EXTERNAL_ENDPOINT=minio:9000
+MINIO_ACCESS_KEY=admin
+MINIO_SECRET_KEY=admin1234
+MINIO_SECURE=False
+MINIO_BUCKET_NAME=my-bucket
+MINIO_ROOT_USER=admin
+MINIO_ROOT_PASSWORD=admin1234
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 15
+REFRESH_TOKEN_EXPIRE_DAYS = 7
+SECRET_KEY = d5d3b47832c146f1a6d5f4df9aa9e7e1084a0c2f993c63c5c6f3c5b231d8d573
+
+Ключ сгенерировал рандомный.
+
 Вся работа с файлами закрыта авторизацией по jwt токену.
 Примеры запросов:
  - загрузка файлов
